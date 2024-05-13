@@ -4,18 +4,20 @@
 
 int main() {
     int counter = 0;
-    auto function = [&counter] () mutable {
-        std::mutex new_mutex;
-        new_mutex.lock();
-        counter++;
+    std::mutex my_mutex;
+    std::thread::id id;
+    auto function = [&]   {
+        my_mutex.lock();
+        id = std::this_thread::get_id();
+        counter+=*reinterpret_cast<int*>(&id);
         std::cout << counter << std::endl;
-        new_mutex.unlock();
+        my_mutex.unlock();
     };
     std::thread t1(function);
-    t1.join();
     std::thread t2(function);
-    t2.join();
     std::thread t3(function);
+    t1.join();
+    t2.join();
     t3.join();
     return 0;
 }
